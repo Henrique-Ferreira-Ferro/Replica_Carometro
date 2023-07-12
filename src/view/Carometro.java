@@ -7,6 +7,8 @@ import java.awt.SystemColor;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -20,14 +22,17 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import javax.imageio.ImageIO;
+import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
@@ -71,6 +76,8 @@ public class Carometro extends JFrame {
 	private JLabel lblFoto;
 	private JButton btnReset;
 	private JButton btnBuscar;
+	private JScrollPane scrollPaneLista;
+	private JList listNomes;
 
 	/**
 	 * Launch the application.
@@ -109,6 +116,16 @@ public class Carometro extends JFrame {
 
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
+		
+		scrollPaneLista = new JScrollPane();
+		scrollPaneLista.setBorder(null);
+		scrollPaneLista.setVisible(false);
+		scrollPaneLista.setBounds(64, 85, 244, 87);
+		contentPane.add(scrollPaneLista);
+		
+		listNomes = new JList();
+		listNomes.setBorder(null);
+		scrollPaneLista.setViewportView(listNomes);
 
 		JPanel panel = new JPanel();
 		panel.setBackground(SystemColor.textHighlight);
@@ -146,6 +163,14 @@ public class Carometro extends JFrame {
 		contentPane.add(lbltexto);
 
 		txtNome = new JTextField();
+		txtNome.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		txtNome.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				listarNomes();
+				
+			}
+		});
 		txtNome.setBounds(64, 70, 244, 19);
 		contentPane.add(txtNome);
 		txtNome.setColumns(10);
@@ -401,13 +426,37 @@ public class Carometro extends JFrame {
 
 	}
 
+	private void listarNomes() {
+		//Vetor dinamico ArrayList
+		DefaultListModel<String> modelo = new DefaultListModel<>();
+		listNomes.setModel(modelo);
+		String readLista = "select * from alunos where nome like '" + txtNome.getText() + 
+				"%'" + "order by nome";
+		try{
+			con = dao.conectar();
+			pst = con.prepareStatement(readLista);
+			rs = pst.executeQuery();
+			while(rs.next()) { //enquanto ouver pessoas a serem buscadas no banco faça
+				scrollPaneLista.setVisible(true); // torne as visivel
+				modelo.addElement(rs.getString(2)); // adicione ao array os elementos da segunda coluna (nome)
+				
+				if(txtNome.getText().isEmpty()) {
+					scrollPaneLista.setVisible(false);
+				}
+			}
+			con.close();
+		}catch(Exception e) {
+			System.out.println(e);
+		}
+	}
+	
+	
 	private void reset() {
-
+		scrollPaneLista.setVisible(false);
 		txtRa.setText(null);
 		txtNome.setText(null);
 		// Modificamos a foto pela imagem da camera
 		lblFoto.setIcon(new ImageIcon(Carometro.class.getResource("/img/photo.png")));
 		txtNome.requestFocus();
 	}
-
 }
