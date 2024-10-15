@@ -15,7 +15,7 @@ public class DAO {
 	private String url = "jdbc:mysql://localhost:3306/dbcarometro";
 	//Dados do usuario que pode acessar esse banco de dados
 	private String user = "root";
-	private String password = "46182001";
+	private String password = "nan";
 	
 	//Metodo que ira realizar a conecção
 	public Connection conectar() {
